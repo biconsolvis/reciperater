@@ -1,0 +1,51 @@
+# Generated manifest.yml based on template version 0.1.0
+# appName = reciperater
+# language=nodejs
+# multitenancy=false
+---
+applications:
+  # -----------------------------------------------------------------------------------
+  # Backend Service
+  # -----------------------------------------------------------------------------------
+  - name: reciperater-srv
+    routes:
+      - route: espressotutorials-buch-reciperater-((ID)).((LANDSCAPE_APPS_DOMAIN))
+    path: gen/srv
+    memory: 256M
+    buildpack: nodejs_buildpack
+    services:
+      - reciperater-db-container
+      - reciperater-xsuaa
+
+  # -----------------------------------------------------------------------------------
+  # HANA Database Content Deployer App
+  # -----------------------------------------------------------------------------------
+  - name: reciperater-db-deployer
+    path: gen/db
+    no-route: true
+    health-check-type: process
+    memory: 256M
+    instances: 1
+    buildpack: nodejs_buildpack
+    services:
+      - reciperater-db-container
+
+  # -----------------------------------------------------------------------------------
+  # Application Router
+  # -----------------------------------------------------------------------------------
+  - name: reci
+    path: app
+    buildpacks:
+      - nodejs_buildpack
+    memory: 128M
+    routes:
+      - route: espressotutorials-buch-reciperater-web-((ID)).((LANDSCAPE_APPS_DOMAIN))
+    services:
+      - reciperater-xsuaa
+    env:
+      destinations: >
+        [
+          {"name":"reciperater-api",
+           "url":"https://espressotutorials-buch-reciperater-((ID)).((LANDSCAPE_APPS_DOMAIN))",
+           "forwardAuthToken": true}
+        ]

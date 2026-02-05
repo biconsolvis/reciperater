@@ -1,0 +1,132 @@
+// URL des Servers. Für lokale Tests standardmäßig localhost:4004. Ersetzen Sie sie später durch die Cloud Foundry-Route.
+@server = https://7e7715f4trial-dev-reciperater-srv.cfapps.us10-001.hana.ondemand.com
+
+@approuter = https://7e7715f4trial-dev-reciperater-approuter.cfapps.us10-001.hana.ondemand.com
+
+// Kein Benutzer
+@user_none =
+// Vordefinierter Testbenutzer mit Administratorrolle
+@user_admin = Authorization: Basic alice:
+// Vordefinierter Testbenutzer ohne Administratorrolle
+@user_default = Authorization: Basic bob:
+
+### ------------------------------------------------------------------------
+# Anfordern eines OAuth-Tokens für die Autorisierung bei nachfolgenden Aufrufen
+# @name OAuthToken
+// URL des XSUAA Service. Zu finden in der default-env.json unter VCAP_Services -> xsuaa -> credentials -> url.
+@xsuaa_url = <<xsuaa_url>>
+// Client ID für den XSUAA Service. Zu finden in der default-env.json unter VCAP_Services -> xsuaa -> credentials -> clientid.
+@xsuaa_client_id = <<client_id>>
+// Client Secret für den XSUAA Service. Zu finden in der default-env.json unter VCAP_Services -> xsuaa -> credentials -> clientsecret.
+@xsuaa_client_secret = <<clientsecret>>
+// Die E-Mail-Adresse, mit der Sie sich bei SAP BTP anmelden.
+@sap_btp_username = <<email>>
+// Das Passwort, mit dem Sie sich bei SAP BTP anmelden.
+@sap_btp_password = <<passwort>>
+# Diese Daten werden aus der Anfrage gefüllt. Sie müssen hier nichts eingeben.
+@authToken = {{OAuthToken.response.body.access_token}}
+@user_xsuaa = Authorization: bearer {{authToken}}
+
+POST {{xsuaa_url}}/oauth/token
+Content-Type: application/x-www-form-urlencoded
+Accept: application/json
+Authorization: Basic {{xsuaa_client_id}}:{{xsuaa_client_secret}}
+
+username={{sap_btp_username}}
+&password={{sap_btp_password}}
+&grant_type=password
+&response_type=token
+
+
+### ------------------------------------------------------------------------
+# Erstellung eines Rezepts
+# Kann nur von Benutzern mit der Admin-Rolle ausgeführt werden.
+POST {{server}}/odata/v4/admin/Recipes
+Content-Type: application/json;IEEE754Compatible=true
+// {{user_none}}
+// {{user_default}}
+ {{user_admin}}
+// {{user_xsuaa}}
+
+{
+  "ID": "4bdcb14a-c609-4f1b-a3dc-d4dafc656d46",
+   "name": "Gekochter Reis",
+  "ingredients": ["Reis","Öl"],
+  "cookwares": ["Pfanne","Topf"],
+  "instruction": "Füllen Sie den Topf hälftig mit Wasser und bringen Sie dieses zum Kochen. Nachdem das Wasser kocht geben Sie den Reis für die in der Packung definierte Zeit hinzu. Erhitzen Sie zwischenzeitlich eine Pfanne bei mittlerer Hitze und geben Sie Öl und den gekochten Reis hinzu.",
+  "servingCount": 2,
+  "cookingTimeMinutes": 15
+}
+
+### ------------------------------------------------------------------------
+# Anzeige der Rezepte im öffentlichen Service. Auch ohne Benutzer ausführbar.
+GET {{server}}/browse/Recipes?
+  # &$select=name,instruction,cookwares,servingCount,cookingTimeMinutes
+  # &$expand=reviews($select=title,text,rating)
+&$filter=cookingTimeMinutes ge 15
+{{user_none}}
+// {{user_default}}
+// {{user_admin}}
+// {{user_xsuaa}}
+
+### ------------------------------------------------------------------------
+# Erstellung eines Reviews zum zuvor erstellten Rezept. Kann nur von angemeldeten Benutzern durchgeführt werden.
+POST {{server}}/odata/v4/review/Reviews
+Content-Type: application/json;IEEE754Compatible=true
+// {{user_none}}
+ {{user_default}}
+// {{user_admin}}
+// {{user_xsuaa}}
+
+{
+    "ID": "fe15875e-2ef4-4556-aa90-b176753c53ef",
+    "recipe_ID": "4bdcb14a-c609-4f1b-a3dc-d4dafc656d46",
+    "rating": 5,
+    "title": "Das ist so einfach!",
+    "text": "Einfach Reis kochen und in eine Pfanne geben. So einfach."
+}
+
+### ------------------------------------------------------------------------
+# Änderung des erstellten Reviews. Kann nur vom erstellenden Benutzer durchgeführt werden.
+PUT {{server}}/odata/v4/review/Reviews(fe15875e-2ef4-4556-aa90-b176753c53ef)
+Content-Type: application/json;IEEE754Compatible=true
+// {{user_none}}
+ {{user_default}}
+// {{user_admin}}
+// {{user_xsuaa}}
+
+{
+    "ID": "fe15875e-2ef4-4556-aa90-b176753c53ef",
+    "recipe_ID": "4bdcb14a-c609-4f1b-a3dc-d4dafc656d46",
+    "rating": 4,
+    "title": "Das ist so einfach!",
+    "text": "Einfach Reis kochen und in eine Pfanne geben. So einfach."
+}
+
+### ------------------------------------------------------------------------
+# Entfernen des Reviews - Nutzen Sie diese Anfrage, falls Sie später das Review mit einem anderen Benutzer erstellen möchten.
+DELETE {{server}}/odata/v4/admin/Reviews(fe15875e-2ef4-4556-aa90-b176753c53ef)
+Content-Type: application/json;IEEE754Compatible=true
+// {{user_none}}
+// {{user_default}}
+ {{user_admin}}
+// {{user_xsuaa}}
+
+### ------------------------------------------------------------------------
+# Like des zuvor erstellten Erfahrungsberichts.
+POST {{server}}/odata/v4/review/Reviews(fe15875e-2ef4-4556-aa90-b176753c53ef)/ReviewService.like
+Content-Type: application/json
+ {{user_none}}
+// {{user_default}}
+// {{user_admin}}
+// {{user_xsuaa}}
+
+### ------------------------------------------------------------------------
+# Anzeige des erstellten Rezepts und aller zugehörigen Entitäten. Nur ausführbar durch Benutzer mit Administratorrolle.
+GET {{server}}/odata/v4/admin/Recipes(4bdcb14a-c609-4f1b-a3dc-d4dafc656d46)?$expand=reviews($expand=likes)
+//{{user_none}}
+// {{user_default}}
+ {{user_admin}}
+// {{user_xsuaa}}
+
+

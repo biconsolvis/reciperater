@@ -1,0 +1,5 @@
+# Angaben, um die Urls eindeutig zu machen. Ändern Sie den Wert beispielsweise in Ihre Benutzer-ID.
+ID: jhgljk
+
+# Wählen Sie "cfapps.eu10.hana.ondemand.com" bei einem Testkonto bei AWS in Frankfurt. Für andere Landschaften modifizieren Sie die URL entsprechend, indem Sie z. B. "eu10" durch "us10" ersetzen.
+LANDSCAPE_APPS_DOMAIN: cfapps.us10-001.hana.ondemand.com

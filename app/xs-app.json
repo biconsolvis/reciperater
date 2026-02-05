@@ -1,0 +1,16 @@
+{
+    "authenticationMethod": "route",
+    "routes": [
+        {
+            "source": "/(admin|browse|review)/(.*)",
+            "destination": "reciperater-api",
+            "csrfProtection": true,
+            "authenticationType": "xsuaa"
+        },
+        {
+            "source": "^/user-api(.*)",
+            "target": "$1",
+            "service": "sap-approuter-userapi"
+        }
+    ]
+}

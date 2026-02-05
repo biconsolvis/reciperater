@@ -1,0 +1,27 @@
+{
+    "xsappname": "reciperater",
+    "tenant-mode": "dedicated",
+    "scopes": [
+        {
+            "name": "$XSAPPNAME.admin",
+            "description": "admin"
+        }
+    ],
+    "attributes": [],
+    "role-templates": [
+        {
+            "name": "admin",
+            "description": "generated",
+            "scope-references": [
+                "$XSAPPNAME.admin"
+            ],
+            "attribute-references": []
+        }
+    ],
+    "oauth2-configuration": {
+        "redirect-uris": [
+            "https://*.applicationstudio.cloud.sap/**",
+            "https://*.cfapps.*.hana.ondemand.com/**"
+        ]
+    }
+}
