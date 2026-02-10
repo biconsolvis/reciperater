@@ -27,12 +27,13 @@ modules:
       - name: reciperater-db-container
       - name: reciperater-xsuaa
       - name: reciperater-logging
-
+      - name: reciperater-autoscaler
+        parameters:
+          path: as-policy.json
     provides:
       - name: reciperater-api # required by consumers of CAP services (e.g. approuter)
         properties:
           srv-url: ${default-url}
-
   # -----------------------------------------------------------------------------------
   # Application Router
   # -----------------------------------------------------------------------------------
@@ -92,7 +93,7 @@ resources:
 
   # ------------------------------------------------------------
   - name: reciperater-logging
-    # ------------------------------------------------------------
+  # ------------------------------------------------------------
     type: org.cloudfoundry.managed-service
     parameters:
       service: application-logs

@@ -1,0 +1,41 @@
+{
+    "instance_min_count": 2,
+    "instance_max_count": 5,
+    "scaling_rules": [
+        {
+            "metric_type": "throughput",
+            "operator": ">=",
+            "threshold": 1,
+            "adjustment": "+2",
+            "breach_duration_secs": 60,
+            "cool_down_secs": 60
+        },
+        {
+            "metric_type": "throughput",
+            "operator": "<",
+            "threshold": 3,
+            "adjustment": "-1",
+            "breach_duration_secs": 300,
+            "cool_down_secs": 180
+        }
+    ],
+    "schedules": {
+        "timezone": "Europe/Berlin",
+        "recurring_schedule": [
+            {
+                "start_time": "10:00",
+                "end_time": "18:00",
+                "days_of_week": [
+                    1,
+                    2,
+                    3,
+                    4,
+                    5
+                ],
+                "instance_min_count": 3,
+                "instance_max_count": 6,
+                "initial_min_instance_count": 6
+            }
+        ]
+    }
+}
